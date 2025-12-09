@@ -1,143 +1,62 @@
-import 'package:flutter/material.dart';
+import tkinter as tk
 
-void main() {
-  runApp(const CalculatorApp());
-}
+def add_to_expression(value):
+    current = entry_var.get()
+    if value == ".":
+        if current and current[-1].isdigit():
+            parts = current.split("+")
+            parts = parts[-1].split("-")
+            parts = parts[-1].split("*")
+            parts = parts[-1].split("/")
+            if "." in parts[-1]:
+                return
+    entry_var.set(entry_var.get() + value)
 
-class CalculatorApp extends StatelessWidget {
-  const CalculatorApp({super.key});
+def clear():
+    entry_var.set("")
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Calculator(),
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
+def calculate():
+    expr = entry_var.get()
+    if not expr:
+        return
+    while expr and expr[-1] in "+-*/":
+        expr = expr[:-1]
+    try:
+        result = eval(expr)
+        entry_var.set(str(result))
+    except:
+        entry_var.set("Error")
 
-class Calculator extends StatefulWidget {
-  @override
-  State<Calculator> createState() => _CalculatorState();
-}
+root = tk.Tk()
+root.title("Dark Calculator")
+root.configure(bg="black")
 
-class _CalculatorState extends State<Calculator> {
-  String expression = "";
+entry_var = tk.StringVar()
+entry_frame = tk.Frame(root, bg="white", bd=2, relief="ridge")
+entry_frame.grid(row=0, column=0, columnspan=4, sticky="nsew", padx=5, pady=5)
+entry = tk.Entry(entry_frame, textvariable=entry_var, font=("Arial", 20), bg="black", fg="white", bd=0, justify="right")
+entry.pack(fill="both", expand=True)
 
-  void addToExpression(String value) {
-    setState(() {
-      expression += value;
-    });
-  }
+buttons = [
+    ('7', 1, 0), ('8', 1, 1), ('9', 1, 2), ('/', 1, 3),
+    ('4', 2, 0), ('5', 2, 1), ('6', 2, 2), ('*', 2, 3),
+    ('1', 3, 0), ('2', 3, 1), ('3', 3, 2), ('-', 3, 3),
+    ('0', 4, 0), ('.', 4, 1), ('=', 4, 2), ('+', 4, 3),
+    ('C', 5, 0)
+]
 
-  void clearExpression() {
-    setState(() {
-      expression = "";
-    });
-  }
+for (text, row, col) in buttons:
+    if text == "=":
+        btn = tk.Button(root, text=text, command=calculate, font=("Arial", 18), bg="beige", fg="blue", bd=2, relief="ridge")
+    elif text == "C":
+        btn = tk.Button(root, text=text, command=clear, font=("Arial", 18), bg="red", fg="white", bd=2, relief="ridge")
+    else:
+        btn = tk.Button(root, text=text, command=lambda t=text: add_to_expression(t), font=("Arial", 18), bg="beige", fg="blue", bd=2, relief="ridge")
+    btn.grid(row=row, column=col, sticky="nsew", padx=3, pady=3)
 
-  void calculateResult() {
-    try {
-      // Using the 'expression_language' package is more robust, but for simplicity:
-      final result = double.parse(expression);
-      setState(() {
-        expression = result.toString();
-      });
-    } catch (e) {
-      try {
-        final result = _evaluate(expression);
-        setState(() {
-          expression = result.toString();
-        });
-      } catch (_) {
-        setState(() {
-          expression = "Error";
-        });
-      }
-    }
-  }
+for i in range(6):
+    root.grid_rowconfigure(i, weight=1)
+for i in range(4):
+    root.grid_columnconfigure(i, weight=1)
 
-  double _evaluate(String expr) {
-    // Simple evaluator supporting +, -, *, /
-    List<String> tokens = expr.split(RegExp(r'([+\-*/])')).map((e) => e.trim()).toList();
-    double result = double.parse(tokens[0]);
-    for (int i = 1; i < tokens.length; i += 2) {
-      String op = tokens[i];
-      double num = double.parse(tokens[i + 1]);
-      if (op == '+') result += num;
-      if (op == '-') result -= num;
-      if (op == '*') result *= num;
-      if (op == '/') result /= num;
-    }
-    return result;
-  }
-
-  Widget buildButton(String text, {Color? color}) {
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.all(2.0),
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: color ?? Colors.grey[200],
-            padding: const EdgeInsets.all(24),
-          ),
-          onPressed: () {
-            if (text == "C") clearExpression();
-            else if (text == "=") calculateResult();
-            else addToExpression(text);
-          },
-          child: Text(
-            text,
-            style: const TextStyle(fontSize: 24, color: Colors.black),
-          ),
-        ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Simple Calculator")),
-      body: Column(
-        children: [
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              alignment: Alignment.bottomRight,
-              child: Text(
-                expression,
-                style: const TextStyle(fontSize: 36),
-              ),
-            ),
-          ),
-          Row(
-            children: [
-              buildButton("7"), buildButton("8"), buildButton("9"), buildButton("/"),
-            ],
-          ),
-          Row(
-            children: [
-              buildButton("4"), buildButton("5"), buildButton("6"), buildButton("*"),
-            ],
-          ),
-          Row(
-            children: [
-              buildButton("1"), buildButton("2"), buildButton("3"), buildButton("-"),
-            ],
-          ),
-          Row(
-            children: [
-              buildButton("0"), buildButton("."), buildButton("="), buildButton("+"),
-            ],
-          ),
-          Row(
-            children: [
-              buildButton("C", color: Colors.redAccent),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
+root.mainloop()
